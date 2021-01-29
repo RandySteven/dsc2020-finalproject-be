@@ -1,5 +1,6 @@
+const { table } = require('../config/db');
 const knex = require('../config/db');
-
+const { route } = require('../router/province');
 /**
  * 
  * @param {import('express').Request} req 
@@ -9,9 +10,9 @@ const addProvince = async (req, res) => {
     try {
         const {name, recovered, death, positive} = req.body;
         const [result] = await knex('provinces').insert({name, recovered, death, positive, created_at:new Date()});
-        res.send({status:true, message:'Create data success', data:result});
+        return res.send({status:true, message:'Storing data success', data:result});
     } catch (error) {
-        res.send({message:'Create error', error:error});
+        return res.send({status:false, message:'Storing data failed'});
     }
 }
 
@@ -20,19 +21,29 @@ const addProvince = async (req, res) => {
  * @param {import('express').Request} req 
  * @param {import('express').Response} res 
  */
+
 const getProvince = async (req, res) => {
     try {
         const {provinceId} = req.params;
-        let query="", provinces;
+        let provinces, id, links;
+        let count, message, total;
         // console.log(provinceId)
         if(provinceId==undefined){
-            provinces = await knex('provinces').select('*').whereNull('deleted_at')
+            
+            provinces = await knex('provinces').select('id', 'name', 'recovered', 'death', 'positive', knex.raw(`CONCAT('/api/v1/provinces/', '', id ) as "url"`)).whereNull('deleted_at');
+            count = await knex('provinces').whereNull('deleted_at').count();
+            total = count[0]['count(*)']
+           
+            // id = provinces[provinces.count()]['id']
+            // links = `/api/v1/province/${provinces[0]['id']}`
+            message = res.status(200).send({status:true, totalData:total, message:'Fetch success', data:{provinces}});
         }else{
-            provinces = await knex('provinces').select('*').where({'id':provinceId}).whereNull('deleted_at')
+            provinces = await knex('provinces').select('name', 'recovered', 'death', 'positive').where({'id':provinceId}).whereNull('deleted_at');
+            message = res.status(200).send({status:true, stored:provinces});
         }
-        return res.send({message:'Fetch success', data:provinces});
+        return message;
     } catch (error) {
-        return res.send({message:'Get error', error:error});
+        return res.status(404).send({message:'Fetching data failed', status:false, error:error.message});
     }
 }
 
@@ -43,14 +54,17 @@ const getProvince = async (req, res) => {
  */
 const updateProvince = async (req, res) => {
     try {
-        const {provinceId} = req.params;
-        const before = await knex('provinces').select('name','recovered','death','positive').where({'id':provinceId}).whereNull('deleted_at');
-        const {name, recovered, death, positive} = req.body;
-        const result = await knex('provinces').where('id','=',provinceId).update({name, recovered, death, positive, updated_at:new Date()});
+        let message;
+        const {id, name, recovered, death, positive} = req.body;
+        const before = await knex('provinces').select('name','recovered','death','positive').where('id', '=', provinceId).whereNull('deleted_at');
+        const result = await knex('provinces')
+                                .where({'id':id})
+                                .update({name, recovered, death, positive, updated_at:new Date()});
         const after = await knex('provinces').select('name','recovered','death','positive').where({'id':provinceId}).whereNull('deleted_at');
-        res.status(200).send({status:true, message:'Updating data success', before:before, after:after});
+        message = res.status(200).send({status:true, message:'Updating data success', before:before, after:after});
+        return message
     } catch (error) {
-        res.status(400).send({status:false, message:'Updating data failed', error:error.message});
+       return res.status(400).send({status:false, message:'Updating data failed', error:error.message});
     }
 }
 
@@ -60,12 +74,14 @@ const updateProvince = async (req, res) => {
  * @param {import('express').Response} res 
  */
 const deleteProvince = async (req, res) => {
+    // let {provinceId} = req.body;
+    const id = req.body;
+    console.log(id);
     try {
-        const {provinceId} = req.params;
-        const result = await knex('provinces').where('id','=',provinceId).update({deleted_at:new Date()});
-        res.status(200).send({status:true, message:'Destroy data success'});
+        const result = await knex('provinces').where({'id':id}).update({deleted_at:new Date()});
+        return res.status(200).send({status:true, message:'Destroy data success'});
     } catch (error) {
-        res.status(400).send({status:false, message:'Destroy data failed', error:error.message});
+        return res.status(400).send({status:false, message:'Destroy data failed'});
     }
 }
 

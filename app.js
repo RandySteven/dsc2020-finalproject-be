@@ -1,6 +1,6 @@
 const express = require('express')
-
 const app = express();
+app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 
 app.use((req, res, next)=>{
@@ -17,13 +17,8 @@ app.use((req, res, next)=>{
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     next();
-})
-
-app.get('/testing', (req, res)=>{
-    res.send({message:'route testing'});
 });
 
-
-app.use('/province/', require('./src/router/province'));
+app.use('/api/v1/provinces/', require('./src/router/province'));
 
 app.listen(3000, console.log('Success to connect'));

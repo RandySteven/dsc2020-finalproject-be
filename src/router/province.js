@@ -6,11 +6,12 @@ router
     .route('/')
         .get(getProvince)
         .post(addProvince)
+        .put(updateProvince)
+        .delete(deleteProvince)
 
 router
     .route('/:provinceId')
     .get(getProvince)
-        .put(updateProvince)
-        .delete(deleteProvince)
+
 
 module.exports = router;
