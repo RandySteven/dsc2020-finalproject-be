@@ -1,6 +1,6 @@
-const { table } = require('../config/db');
+// const { table } = require('../config/db');
 const knex = require('../config/db');
-const { route } = require('../router/province');
+// const { route } = require('../router/province');
 /**
  * 
  * @param {import('express').Request} req 
