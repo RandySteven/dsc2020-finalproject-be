@@ -16,9 +16,14 @@ app.use((req, res, next)=>{
 app.use((req, res, next)=>{
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
-    next();
+        next()
 });
-
 app.use('/api/v1/provinces/', require('./src/router/province'));
+
+// app.all('*', (req, res, next)=>{
+//     throw new Error(`Request error ${req.path} not found`, 404)
+// })
+
+
 
 app.listen(3000, console.log('Success to connect'));
