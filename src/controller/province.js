@@ -11,12 +11,17 @@ const addProvince = async (req, res) => {
     try {
         const provinces = await knex('provinces').whereNull('deleted_at');
         const {name, recovered, death, positive} = req.body;
-        const [result] = await knex('provinces').insert({name, recovered, death, positive, created_at:new Date()}).then(async (data) => {
-            query = await knex('provinces').where({'id':data[0]}).first()
+        const [result] = await knex('provinces').insert({name, recovered, death, positive, created_at:new Date()})
+                .then(async (data) => {
+            query = await knex('provinces').select('id', 'name', 'recovered', 'death', 'positive').where({'id':data[0]})
             return res.status(200).send({status:true, message:'Storing data success', data:query})
+        }).catch(error=>{
+            {
+                return res.status(400).send({status:false, message:'Storing data failed'})
+            }
         })
     } catch (error) {
-        return res.send({status:false, message:'Storing data failed'});
+        return res.status(400).send({status:false, message:'Storing data failed'});
     }
 }
 
